@@ -1,0 +1,16 @@
+{
+  "name": "testbot-aws-serverless",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-serverless-express": "^3.3.6",
+    "express-async-errors": "^3.1.1",
+    "probot": "git://github.com/bruce-lindsay/probot.git#f6c5bb78e04ce07c4871336e3474c4456996e2b2"
+  }
+}
