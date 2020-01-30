@@ -1,8 +1,8 @@
 {
     "httpMethod": "GET",
     "//body": "{\"name\": \"Sam\"}",
-    "//path": "/ping",
-    "path":"/probot/static/sample.txt",
+    "path": "/otherness",
+    "//path":"/probot",
     "resource": "/{proxy+}",
     "queryStringParameters": {},
     "pathParameters": {

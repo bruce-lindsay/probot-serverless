@@ -52,11 +52,10 @@ provider:
 package:
   include:
     - static/*.*
+    - views/*.*
 #    - include-me.js
   exclude:
     - artifacts/**
-    - node_modules/probot/node_modules/.bin/**
-    - node_modules/probot/coverage/**
 #    - exclude-me.js
 #    - exclude-me-dir/**
 
@@ -98,8 +97,8 @@ functions:
 #            path: /hello
 
 #    Define function environment variables here
-#    environment:
-#      variable2: value2
+    environment:
+      DEBUG: "express*"
 
 # you can add CloudFormation resource templates here
 #resources:
