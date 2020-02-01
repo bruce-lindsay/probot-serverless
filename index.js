@@ -1,50 +1,104 @@
 'use strict'
-const boilerplate = require('./serverboilerplate');
-const path = require('path');
+
+const awsServerlessExpress = require('aws-serverless-express');
 const express = require('express');
+const findPrivateKey = require('@skynet1024/probot/lib/private-key').findPrivateKey;
+const logRequest = require('@skynet1024/probot/lib/middleware/logging').logRequest;
+const probot = require('@skynet1024/probot');
 
-const appFn = ctx => {
-  ctx.on('*', ctx => {
-    console.log(ctx.payload);
-  });
-  ctx.on('installation', ctx => {
-    console.log('installation');
-    console.log(ctx.payload);
-  });
-  ctx.on('installation.created', ctx => {
-    console.log('installation.created');
-    console.log(ctx.payload);
-  });
-  const router = ctx.route();
+// Teach express to properly handle async errors
+// tslint:disable-next-line:no-var-requires
+require('express-async-errors')
 
-  router.get('/ping', (req, res) => res.end('PONG'))
-  router.get('/other', (req, res) => 
-      res.render("foobar", { message: 'baz', ts: (+ new Date()) }))
+let createdApp = null;
+let disableListen = false;
+let expressFunction = null;
 
-  router.get('/otherness', (req, resp) => resp.json({ayyy: 'lol'}))
+// copy of minimal server boilerplate from probot server.ts
+const createServer = (args) => {
+  const app = express()
 
-  router.use('/static', express.static(path.join(__dirname, 'static')))
-  console.log('router.use', typeof router.use);
+  app.use(logRequest({ logger: args.logger }))
+  app.use(args.webhook)
+
+  if (expressFunction) {
+    expressFunction(app);
+  }
+
+  // the app is created inside of probot
+  // capture the value for use in serverBuilder
+  createdApp = app;
+
+  // aws-serverless-express bypasses using listen
+  if (disableListen) {
+    app.listen = () => { return app; };
+  }
+  
+  return app;
+}
+
+const assertOptions = (options) => {
+  if (!(options && options.appFn)) {
+    throw new Error("options.appFn is unspecfied");
+  }
+}
+
+const createServerlessHandler = () => {
+  const server = awsServerlessExpress.createServer(createdApp);
+  return (event, context) => {
+      awsServerlessExpress.proxy(server, event, context);
+  }
+}
+
+// copy of unreachable function from probot index.ts 
+const optionsFromEnvironment = () => {
+  const privateKey = findPrivateKey()
+  return {
+    cert: (privateKey && privateKey.toString()) || undefined,
+    id: Number(process.env.APP_ID),
+    port: Number(process.env.PORT) || 3000,
+    secret: process.env.WEBHOOK_SECRET,
+    webhookPath: process.env.WEBHOOK_PATH,
+    webhookProxy: process.env.WEBHOOK_PROXY_URL
+  };
+}
+
+const serverUp = (options) => {
+  assertOptions(options);
+
+  const optionsArg = Object.assign(
+    {createExpress: createServer}, 
+    options, 
+    optionsFromEnvironment());
+
+  if (options.expressFunction) {
+    expressFunction = options.expressFunction;
+  }
+
+  const pb = new probot.Probot(
+    optionsArg
+  );
+
+  pb.load(options.appFn);
+
+  return pb;
+}
+
+const setupServerless = (options) => {
+  let disableListen = true;
+
+  serverUp(options);
+
+  return createServerlessHandler();
 };
 
-// I have limited knowledge of express
-// it doesn't seem i could set the view engine 
-// on the probot Application, so included an additional hook
-const expressFunction = app => {
-  app.set('view engine', 'hbs')
-  app.set('views', path.join(__dirname, 'views'))
-};
+const setupServer = (options) => {
+  let disableListen = false;
 
-const opts = { appFn, expressFunction };
-
-let handler = null;
-
-if (process.env.SERVERLESS === "SERVERLESS") {
-  handler = boilerplate.setupServerless(opts);
-} else {
-  boilerplate.setupServer(opts);
+  serverUp(options).start();
 }
 
 module.exports = {
-  handler
+  setupServer,
+  setupServerless
 };

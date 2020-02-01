@@ -1,7 +1,7 @@
 {
-  "name": "testbot-aws-serverless",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@skynet1024/probot-serverless",
+  "version": "0.0.1-experimental",
+  "description": "easily switch between serverless aws probot and local express",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,8 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@skynet1024/probot": "0.0.1-experimental",
     "aws-serverless-express": "^3.3.6",
-    "express-async-errors": "^3.1.1",
-    "probot": "git+https://github.com/bruce-lindsay/probot.git"
+    "express-async-errors": "^3.1.1"
   }
 }
