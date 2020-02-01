@@ -6,7 +6,6 @@ const findPrivateKey = require('probot/lib/private-key').findPrivateKey;
 const logRequest = require('probot/lib/middleware/logging').logRequest;
 const probot = require('probot');
 
-
 // Teach express to properly handle async errors
 // tslint:disable-next-line:no-var-requires
 require('express-async-errors')
@@ -26,8 +25,8 @@ const createServer = (args) => {
     expressFunction(app);
   }
 
-  // the app is created inside of probot, so capture the value
-  // for use in serverBuilder
+  // the app is created inside of probot
+  // capture the value for use in serverBuilder
   createdApp = app;
 
   // aws-serverless-express bypasses using listen
@@ -53,7 +52,6 @@ const createServerlessHandler = () => {
 
 // copy of unreachable function from probot index.ts 
 const optionsFromEnvironment = () => {
-  console.log(typeof findPrivateKey)
   const privateKey = findPrivateKey()
   return {
     cert: (privateKey && privateKey.toString()) || undefined,
